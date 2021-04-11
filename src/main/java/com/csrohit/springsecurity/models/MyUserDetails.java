@@ -6,22 +6,36 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class MyUserDetails implements UserDetails {
     private String username;
+    private String password;
+    private boolean active;
+    private List<GrantedAuthority> authorities;
 
     public MyUserDetails(String username) {
         this.username = username;
     }
 
+    public MyUserDetails(User user) {
+        username = user.getUsername();
+        password = user.getPassword();
+        active = user.isActive();
+        authorities = Arrays.stream(user.getRoles().split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
+        return this.authorities;
     }
 
     @Override
     public String getPassword() {
-        return "pass";
+        return this.password;
     }
 
     @Override
@@ -46,6 +60,6 @@ public class MyUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.active;
     }
 }
